@@ -303,8 +303,7 @@ ANALYSIS_SCHEMA = {
                         "properties": {
                             "type": {"type": "STRING", "enum": ["improvement", "strength"]},
                             "detail": {"type": "STRING", "description": "The specific advice or observation."}
-                        },
-                        "propertyOrdering": ["type", "detail"]
+                        }
                     }
                 },
                 "formatting_advice": {
@@ -315,15 +314,12 @@ ANALYSIS_SCHEMA = {
                         "properties": {
                             "type": {"type": "STRING", "enum": ["improvement", "strength"]},
                             "detail": {"type": "STRING", "description": "The specific advice or observation."}
-                        },
-                        "propertyOrdering": ["type", "detail"]
+                        }
                     }
                 },
-            },
-            "propertyOrdering": ["keyword_gaps", "keyword_strengths", "content_improvements", "formatting_advice"]
+            }
         }
-    },
-    "propertyOrdering": ["ats_score", "feedback"]
+    }
 }
 
 BULLET_POINT_SCHEMA = {
@@ -335,8 +331,7 @@ BULLET_POINT_SCHEMA = {
             "description": "A list of three highly-polished, quantifiable, and action-oriented resume bullet points.",
             "items": {"type": "STRING"}
         }
-    },
-    "propertyOrdering": ["job_title", "generated_bullets"]
+    }
 }
 
 SUGGESTION_SCHEMA = {
@@ -347,8 +342,7 @@ SUGGESTION_SCHEMA = {
         "properties": {
             "skill": {"type": "STRING", "description": "The specific missing keyword/skill that this bullet addresses."},
             "bullet": {"type": "STRING", "description": "A strong, quantifiable, and action-oriented bullet point suggestion on how to integrate this skill into the user's resume, based on common experience for the target job."}
-        },
-        "propertyOrdering": ["skill", "bullet"]
+        }
     }
 }
 
@@ -379,12 +373,10 @@ TEMPLATE_RECOMMENDATION_SCHEMA = {
                     "template_name": {"type": "STRING", "enum": TEMPLATE_OPTIONS},
                     "compatibility_score": {"type": "INTEGER", "description": "Score from 1 to 100."},
                     "reason": {"type": "STRING", "description": "1 sentence on why this template is a good/bad match."}
-                },
-                "propertyOrdering": ["template_name", "compatibility_score", "reason"]
+                }
             }
         }
-    },
-    "propertyOrdering": ["best_template_type", "justification", "available_templates"]
+    }
 }
 
 SECTION_REFINEMENT_SCHEMA = {

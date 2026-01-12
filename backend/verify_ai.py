@@ -26,9 +26,21 @@ for model_name in ["gemini-2.5-flash", "gemini-2.5-pro"]: # Add other models if 
     try:
         model = genai.GenerativeModel(
             model_name=model_name,
-            generation_config={"response_mime_type": "application/json"}
+            generation_config={
+                "response_mime_type": "application/json",
+                "response_schema": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "status": {"type": "STRING"},
+                        "details": {
+                            "type": "OBJECT",
+                            "properties": {"info": {"type": "STRING"}}
+                        }
+                    }
+                }
+            }
         )
-        response = model.generate_content("Return this JSON: {'status': 'Working'}")
+        response = model.generate_content("Return this JSON: {'status': 'Working', 'details': {'info': 'Complex'}}")
         print(f"✅ SUCCESS with {model_name}!")
         print(f"Response: {response.text}")
         break # Stop after the first successful model
