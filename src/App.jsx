@@ -109,8 +109,8 @@ const AuthModal = () => {
 
     return (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 flex items-center justify-center p-4">
-            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
-                <h2 className="text-2xl sm:text-3xl font-bold text-indigo-600 mb-2 flex items-center">
+            <div className="bg-white p-5 sm:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
+                <h2 className="text-xl sm:text-3xl font-bold text-indigo-600 mb-2 flex items-center">
                     <LogIn className="w-7 h-7 mr-2" />
                     {isSignIn ? 'Welcome Back!' : 'Create Your Account'}
                 </h2>
@@ -188,7 +188,7 @@ const AuthModal = () => {
 
 // Custom component for a structured feedback block
 const FeedbackBlock = ({ title, score, icon: Icon, children }) => (
-    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-100">
+    <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100">
         <div className="flex items-center justify-between mb-3 border-b pb-3">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
                 <Icon className="w-5 h-5 mr-2 text-indigo-600" />
@@ -277,14 +277,14 @@ const BulletGenerator = () => {
     }, [jobTitle, taskDescription]);
 
     return (
-        <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl border border-indigo-100">
+        <div className="max-w-4xl mx-auto bg-white p-5 sm:p-8 rounded-xl shadow-2xl border border-indigo-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <Zap className="w-6 h-6 mr-2 text-orange-500" />
                 AI Bullet Point Generator
             </h2>
             <p className="text-gray-600 mb-6">Turn simple tasks into powerful, quantifiable resume achievements.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
                 <div>
                     <label htmlFor="jobTitle" className="block text-sm font-semibold text-gray-700 mb-2">
                         Your Job Title (e.g., Marketing Intern, Software Engineer)
@@ -449,7 +449,7 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
     const { signOut } = useAuth(); // Destructure signOut to use it here
     if (user?.isGuest) {
         return (
-            <div className="text-center p-12 bg-indigo-50 rounded-xl shadow-lg border border-indigo-100 max-w-xl mx-auto flex flex-col items-center">
+            <div className="text-center p-6 sm:p-12 bg-indigo-50 rounded-xl shadow-lg border border-indigo-100 max-w-xl mx-auto flex flex-col items-center">
                 <div className="bg-white p-4 rounded-full mb-4 shadow-sm">
                     <UserX className="w-10 h-10 text-indigo-400" />
                 </div>
@@ -469,12 +469,12 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
     }
 
     if (error && !error.includes("Authentication required")) {
-        return <div className="text-center p-12 text-red-600 bg-red-50 rounded-lg border border-red-200 max-w-xl mx-auto">{error}</div>;
+        return <div className="text-center p-8 sm:p-12 text-red-600 bg-red-50 rounded-lg border border-red-200 max-w-xl mx-auto">{error}</div>;
     }
 
     if (history.length === 0) {
         return (
-            <div className="text-center p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-xl mx-auto flex flex-col items-center">
+            <div className="text-center p-6 sm:p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-xl mx-auto flex flex-col items-center">
                 <div className="bg-indigo-50 p-4 rounded-full mb-4">
                     <FileText className="w-10 h-10 text-indigo-400" />
                 </div>
@@ -501,9 +501,9 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
 
             <div className='space-y-4'>
                 {history.map((draft) => (
-                    <div key={draft.id} className="bg-white p-5 rounded-xl shadow-lg border-l-4 border-indigo-400 flex flex-col sm:flex-row justify-between items-start sm:items-center transition duration-200 hover:shadow-xl hover:bg-indigo-50/50">
+                    <div key={draft.id} className="bg-white p-4 sm:p-5 rounded-xl shadow-lg border-l-4 border-indigo-400 flex flex-col sm:flex-row justify-between items-start sm:items-center transition duration-200 hover:shadow-xl hover:bg-indigo-50/50">
                         {/* Info Block */}
-                        <div className='flex-1 pr-4 min-w-0'>
+                        <div className='flex-1 w-full sm:w-auto pr-0 sm:pr-4 min-w-0'>
                             <p className="text-lg font-semibold text-gray-800 truncate">
                                 {draft.target_job_title}
                                 <span className="text-sm font-normal text-gray-500 ml-2">({draft.created_at.split(' ')[0]})</span>
@@ -515,7 +515,7 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
                         </div>
 
                         {/* Action Block */}
-                        <div className="flex items-center space-x-2 mt-3 sm:mt-0 sm:flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-0 sm:flex-shrink-0 w-full sm:w-auto">
                             <span className={`text-xl font-extrabold px-3 py-1 rounded-full ${draft.ats_score >= 85 ? 'bg-green-100 text-green-700' :
                                 draft.ats_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
                                     'bg-red-100 text-red-700'
@@ -723,7 +723,7 @@ const TargetedSuggestionSection = ({ resumeText, jobDescription, keywordGaps }) 
     }
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-orange-200">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border-2 border-orange-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                 <Lightbulb className="w-6 h-6 mr-3 text-orange-500" />
                 Targeted Skill Gap Solutions
@@ -1172,7 +1172,7 @@ const MainApp = () => {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans p-4 sm:p-8">
+        <div className="min-h-screen bg-gray-50 font-sans p-3 sm:p-8">
             {showAuthModal && <AuthModal />}
             {/* Template Selector Modal is conditional on analysis being present */}
             {showTemplateModal && analysis && (
@@ -1259,8 +1259,8 @@ const MainApp = () => {
                     {/* ANALYSIS Tab Content (Input) */}
                     {activeTab === 'analyze' && (
                         <>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-8">
+                                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100">
                                     <label htmlFor="resume" className="block text-sm font-semibold text-gray-700 mb-2">
                                         Paste Your Resume Text or Upload File
                                     </label>
@@ -1287,7 +1287,7 @@ const MainApp = () => {
                                     ></textarea>
                                 </div>
 
-                                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100">
                                     <label htmlFor="job-description" className="block text-sm font-semibold text-gray-700 mb-2">
                                         Paste the Target Job Description or Upload File
                                     </label>
@@ -1351,7 +1351,7 @@ const MainApp = () => {
 
                     {/* TEMPLATE EDITOR Tab Content (NEW) */}
                     {activeTab === 'template' && (
-                        <div className="text-center p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-2xl mx-auto">
+                        <div className="text-center p-8 sm:p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-2xl mx-auto">
                             <div className="bg-yellow-50 p-4 rounded-full inline-block mb-4">
                                 <Zap className="w-12 h-12 text-yellow-500" />
                             </div>
