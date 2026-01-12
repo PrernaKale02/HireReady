@@ -60,35 +60,39 @@ npm install
 npm run dev
 ```
 
-### 4. Database Setup (MySQL)
+### 4. Database & AI Setup (MongoDB & Gemini)
 
-- Create a MySQL database, e.g., `hireready_db`.
-- Manually create the required tables as per the schema used in the app.
-- Update the database credentials in `backend/app.py` if needed.
-
+- **MongoDB**: Create a cluster on [MongoDB Atlas](https://www.mongodb.com/atlas).
+- **Gemini AI**: Get an API key from [Google AI Studio](https://aistudio.google.com/).
+- **Config**: Create a `backend/.env` file:
+    ```env
+    MONGO_URI=mongodb+srv://<user>:<pass>@...
+    JWT_SECRET=your_secret_key
+    GEMINI_API_KEY=your_gemini_key
+    ```
 
 Then open **[http://localhost:5173](http://localhost:5173)** (or the port shown in your terminal) in your browser.
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deployment Guide
 
-### Backend (Production)
-1.  Creating a `backend/.env` file based on `backend/.env.example`.
-2.  Install `gunicorn` (included in updated requirements.txt).
-3.  Run with Gunicorn:
-    ```bash
-    gunicorn app:app
-    ```
+### Backend (Render.com Recommended)
+1.  Push your code to GitHub.
+2.  Go to **Render** -> New -> **Web Service**.
+3.  Connect your repo.
+4.  **Root Directory**: `backend` (Important!).
+5.  **Build Command**: `pip install -r requirements.txt`.
+6.  **Start Command**: `gunicorn app:app`.
+7.  **Environment Variables**: Add `MONGO_URI`, `JWT_SECRET`, and `GEMINI_API_KEY`.
+8.  Deploy! Copy the resulting URL (e.g., `https://hire-ready-api.onrender.com`).
 
-### Frontend (Production)
-1.  Create a `.env` file based on `.env.example`.
-2.  Set `VITE_API_URL` to your deployed backend URL (e.g., `https://your-backend.onrender.com`).
-3.  Build for production:
-    ```bash
-    npm run build
-    ```
-4.  Deploy the `dist` folder to a static host (Vercel, Netlify, etc.).
+### Frontend (Vercel Recommended)
+1.  Go to **Vercel** -> Add New -> Project.
+2.  Connect your repo.
+3.  **Framework Preset**: Vite.
+4.  **Environment Variables**: Add `VITE_API_URL` -> Value = Your Backend URL from above (No trailing slash).
+5.  Deploy!
 
 ---
 

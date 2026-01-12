@@ -436,11 +436,36 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
     useEffect(() => {
         if (user?.token) {
             fetchHistory();
+        } else if (user?.isGuest) {
+            setIsLoading(false);
         }
     }, [user, historyVersion, fetchHistory]);
 
     if (isLoading) {
         return <div className="text-center p-12 text-indigo-600"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" /> Loading History...</div>;
+    }
+
+    // --- NEW: Guest Mode Message ---
+    const { signOut } = useAuth(); // Destructure signOut to use it here
+    if (user?.isGuest) {
+        return (
+            <div className="text-center p-12 bg-indigo-50 rounded-xl shadow-lg border border-indigo-100 max-w-xl mx-auto flex flex-col items-center">
+                <div className="bg-white p-4 rounded-full mb-4 shadow-sm">
+                    <UserX className="w-10 h-10 text-indigo-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Guest Mode Active</h3>
+                <p className="text-gray-600 mb-6">
+                    History and drafts are disabled in Guest Mode.<br />
+                    Create a free account to automatically save your work.
+                </p>
+                <button
+                    onClick={signOut}
+                    className="px-8 py-3 text-sm font-bold text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition shadow-md"
+                >
+                    Sign Up / Log In
+                </button>
+            </div>
+        );
     }
 
     if (error && !error.includes("Authentication required")) {

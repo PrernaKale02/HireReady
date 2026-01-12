@@ -1,6 +1,5 @@
 import os
 import json
-import requests
 import time
 import jwt
 import datetime
@@ -14,11 +13,12 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from functools import wraps
+import google.generativeai as genai
 
 load_dotenv()
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+genai.configure(api_key=API_KEY, transport='rest')
 MONGO_URI = os.environ.get("MONGO_URI")
 JWT_SECRET = os.environ.get("JWT_SECRET")
 
@@ -408,42 +408,43 @@ SECTION_REFINEMENT_SCHEMA = {
 }
 
 def call_gemini_with_retry(payload, schema_name):
-    if not API_KEY:
-        raise Exception("Gemini API Key is not configured in app.py.")
-
-    headers = {'Content-Type': 'application/json'}
-    max_retries = 5
+    """
+    Calls the Gemini API using the google-generativeai SDK with exponential backoff.
+    Payload is expected to contain 'contents', 'systemInstruction', and 'generationConfig'.
+    """
+    max_retries = 3
+    retry_delay = 1
     
+    # Extract params from the old payload structure to fit the SDK method signature
+    user_message = payload['contents'][0]['parts'][0]['text']
+    system_instruction = payload['systemInstruction']['parts'][0]['text']
+    generation_config = payload['generationConfig']
+    
+    model = genai.GenerativeModel(
+        model_name='gemini-2.5-flash',
+        system_instruction=system_instruction
+    )
+
     for attempt in range(max_retries):
         try:
-            response = requests.post(
-                f"{GEMINI_API_URL}?key={API_KEY}", 
-                headers=headers, 
-                json=payload, 
-                timeout=30
+            response = model.generate_content(
+                user_message,
+                generation_config=generation_config
             )
-            response.raise_for_status()
             
-            result = response.json()
-            
-            if result.get('candidates') and result['candidates'][0].get('content'):
-                json_text = result['candidates'][0]['content']['parts'][0]['text']
-                return json.loads(json_text)
-            else:
-                raise Exception("LLM response was empty or malformed.")
+            # SDK returns a GenerateContentResponse object
+            # We need to extract the text and parse it as JSON
+            response_text = response.text
+            return json.loads(response_text)
 
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
+            print(f"Gemini SDK Error (Attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                wait_time = 2 ** attempt 
-                time.sleep(wait_time)
+                time.sleep(retry_delay)
+                retry_delay *= 2
             else:
                 print(f"API call failed after {max_retries} attempts.")
-                raise e
-        except Exception as e:
-            print(f"Error processing LLM response ({schema_name}): {e}")
-            raise Exception(f"Failed to process LLM response: {e}")
-
-    raise Exception("Gemini API call failed after multiple retries.")
+                raise Exception(f"Failed to process LLM response: {e}")
 
 def call_gemini_analysis(resume_text, job_description):
     system_prompt = (
