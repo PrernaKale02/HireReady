@@ -66,7 +66,29 @@ npm run dev
 - Manually create the required tables as per the schema used in the app.
 - Update the database credentials in `backend/app.py` if needed.
 
-Then open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+Then open **[http://localhost:5173](http://localhost:5173)** (or the port shown in your terminal) in your browser.
+
+---
+
+## 🚀 Deployment
+
+### Backend (Production)
+1.  Creating a `backend/.env` file based on `backend/.env.example`.
+2.  Install `gunicorn` (included in updated requirements.txt).
+3.  Run with Gunicorn:
+    ```bash
+    gunicorn app:app
+    ```
+
+### Frontend (Production)
+1.  Create a `.env` file based on `.env.example`.
+2.  Set `VITE_API_URL` to your deployed backend URL (e.g., `https://your-backend.onrender.com`).
+3.  Build for production:
+    ```bash
+    npm run build
+    ```
+4.  Deploy the `dist` folder to a static host (Vercel, Netlify, etc.).
 
 ---
 

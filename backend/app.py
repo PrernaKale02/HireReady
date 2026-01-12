@@ -2,41 +2,67 @@ import os
 import json
 import requests
 import time
-import bcrypt 
-import mysql.connector 
+import jwt
+import datetime
+import bcrypt
 from flask import Flask, request, jsonify, g, send_file
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 from pypdf import PdfReader
 from docx import Document
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from functools import wraps
+
+load_dotenv()
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
-
-MYSQL_CONFIG = {
-    "host": os.environ.get("MYSQL_HOST"),
-    "user": os.environ.get("MYSQL_USER"),
-    "password": os.environ.get("MYSQL_PASSWORD"), 
-    "database": os.environ.get("MYSQL_DATABASE"),
-}
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+MONGO_URI = os.environ.get("MONGO_URI")
+JWT_SECRET = os.environ.get("JWT_SECRET")
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
-ACTIVE_SESSIONS = {} 
+# Database Setup
+client = MongoClient(MONGO_URI)
+db = client.get_database("hireready") # Default DB name
+users_collection = db.users
+analyses_collection = db.resume_analyses
 
-def get_db_connection():
-    try:
-        conn = mysql.connector.connect(**MYSQL_CONFIG)
-        return conn
-    except mysql.connector.Error as err:
-        print(f"Database connection error: {err}")
-        return None
+# JWT Helper
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(" ")[1]
+        
+        if not token:
+            return jsonify({'error': 'Token is missing!'}), 401
+        
+        try:
+            data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            current_user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
+            if not current_user:
+                return jsonify({'error': 'User not found!'}), 401
+            # Add user info to global context
+            g.user = {'user_id': str(current_user['_id']), 'username': current_user['username']}
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Invalid token!'}), 401
+        except Exception as e:
+            return jsonify({'error': str(e)}), 401
+            
+        return f(*args, **kwargs)
+    return decorated
 
-def get_user_id_from_token(token):
-    session = ACTIVE_SESSIONS.get(token)
-    return session.get('user_id') if session else None
-
+def get_user_id_from_context():
+    return g.user.get('user_id') if g.user else None
 def extract_text_from_pdf(file_path):
     text = ""
     try:
@@ -58,6 +84,11 @@ def extract_text_from_docx(file_path):
         print(f"Error reading DOCX: {e}")
         return None
     return text.strip()
+
+
+@app.route("/")
+def health():
+    return {"status": "HireReady backend is live 🚀"}
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
@@ -102,33 +133,36 @@ def signup():
     if not all([username, email, password]):
         return jsonify({"error": "Missing username, email, or password."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Could not connect to database."}), 500
+    if users_collection.find_one({"$or": [{"email": email}, {"username": username}]}):
+        return jsonify({"error": "Username or Email already exists."}), 409
     
     try:
-        cursor = conn.cursor()
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
         
-        query = "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)"
-        cursor.execute(query, (username, email, hashed_password))
-        conn.commit()
+        user_id = users_collection.insert_one({
+            "username": username,
+            "email": email,
+            "password_hash": hashed_password,
+            "created_at": datetime.utcnow()
+        }).inserted_id
         
-        user_id = cursor.lastrowid
-        token = str(user_id) 
-        ACTIVE_SESSIONS[token] = {'user_id': user_id, 'username': username}
+        # Generate JWT
+        token = jwt.encode({
+            'user_id': str(user_id),
+            'exp': datetime.utcnow() + timedelta(days=7)
+        }, JWT_SECRET, algorithm="HS256")
 
-        return jsonify({"message": "User created successfully.", "user_id": user_id, "username": username, "token": token}), 201
+        return jsonify({
+            "message": "User created successfully.", 
+            "user_id": str(user_id), 
+            "username": username, 
+            "token": token
+        }), 201
         
-    except mysql.connector.Error as err:
-        if err.errno == 1062:
-            return jsonify({"error": "Username or Email already exists."}), 409
-        print(f"MySQL Error during signup: {err}")
+    except Exception as e:
+        print(f"Error during signup: {e}")
         return jsonify({"error": "Database error during signup."}), 500
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 @app.route('/signin', methods=['POST'])
 def signin():
@@ -139,153 +173,107 @@ def signin():
     if not all([email, password]):
         return jsonify({"error": "Missing email or password."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Could not connect to database."}), 500
-        
     try:
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT id, username, password_hash FROM users WHERE email = %s"
-        cursor.execute(query, (email,))
-        user = cursor.fetchone()
+        user = users_collection.find_one({"email": email})
         
-        if user:
-            if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-                token = str(user['id'])
-                ACTIVE_SESSIONS[token] = {'user_id': user['id'], 'username': user['username']}
-                
-                return jsonify({
-                    "message": "Sign in successful.", 
-                    "user_id": user['id'], 
-                    "username": user['username'], 
-                    "token": token
-                }), 200
-            else:
-                return jsonify({"error": "Invalid email or password."}), 401
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            # Generate JWT
+            token = jwt.encode({
+                'user_id': str(user['_id']),
+                'exp': datetime.utcnow() + timedelta(days=7)
+            }, JWT_SECRET, algorithm="HS256")
+            
+            return jsonify({
+                "message": "Sign in successful.", 
+                "user_id": str(user['_id']), 
+                "username": user['username'], 
+                "token": token
+            }), 200
         else:
             return jsonify({"error": "Invalid email or password."}), 401
             
-    except mysql.connector.Error as err:
-        print(f"MySQL Error during signin: {err}")
+    except Exception as e:
+        print(f"Error during signin: {e}")
         return jsonify({"error": "Database error during signin."}), 500
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 @app.route('/save_analysis', methods=['POST'])
+@token_required
 def save_analysis():
     data = request.get_json()
-    token = data.get('token')
+    user_id = get_user_id_from_context()
     
-    user_id = get_user_id_from_token(token)
-    if not user_id:
-        return jsonify({"error": "Authentication required to save data."}), 401
-
+    analysis_result = data.get('analysis_result')
     resume_text = data.get('resume_text', '')
     job_description = data.get('job_description', '')
-    analysis_result = data.get('analysis_result')
     target_job_title = data.get('target_job_title', 'Untitled Analysis')
     ats_score = analysis_result.get('ats_score', 0) if analysis_result else 0
 
     if not analysis_result:
         return jsonify({"error": "Missing analysis results to save."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Could not connect to database."}), 500
-    
     try:
-        cursor = conn.cursor()
-        query = """
-        INSERT INTO resume_analyses 
-        (user_id, resume_text, job_description, ats_score, analysis_json, target_job_title) 
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        analysis_json_str = json.dumps(analysis_result)
-
-        cursor.execute(query, (user_id, resume_text, job_description, ats_score, analysis_json_str, target_job_title))
-        conn.commit()
+        inserted = analyses_collection.insert_one({
+            "user_id": ObjectId(user_id),
+            "resume_text": resume_text,
+            "job_description": job_description,
+            "ats_score": ats_score,
+            "analysis_json": analysis_result,
+            "target_job_title": target_job_title,
+            "created_at": datetime.utcnow()
+        })
         
-        return jsonify({"message": "Analysis saved successfully!", "id": cursor.lastrowid}), 201
+        return jsonify({"message": "Analysis saved successfully!", "id": str(inserted.inserted_id)}), 201
         
-    except mysql.connector.Error as err:
-        print(f"MySQL Error during save: {err}")
+    except Exception as e:
+        print(f"Error during save: {e}")
         return jsonify({"error": "Database error during save operation."}), 500
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 @app.route('/get_history', methods=['POST'])
+@token_required
 def get_history():
-    data = request.get_json()
-    token = data.get('token')
-    
-    user_id = get_user_id_from_token(token)
-    if not user_id:
-        return jsonify({"error": "Authentication required to view history."}), 401
-
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Could not connect to database."}), 500
+    user_id = get_user_id_from_context()
     
     try:
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT id, ats_score, target_job_title, created_at, resume_text, job_description, analysis_json FROM resume_analyses WHERE user_id = %s ORDER BY created_at DESC"
-        cursor.execute(query, (user_id,))
-        results = cursor.fetchall()
-        
+        cursor = analyses_collection.find({"user_id": ObjectId(user_id)}).sort("created_at", -1)
         history = []
-        for row in results:
-            if row['analysis_json']:
-                row['analysis_json'] = json.loads(row['analysis_json'])
-            else:
-                row['analysis_json'] = {}
-            
-            row['created_at'] = row['created_at'].strftime('%Y-%m-%d %H:%M:%S')
-            history.append(row)
+        for doc in cursor:
+            history.append({
+                "id": str(doc['_id']),
+                "ats_score": doc['ats_score'],
+                "target_job_title": doc.get('target_job_title', 'Untitled'),
+                "created_at": doc['created_at'].strftime('%Y-%m-%d %H:%M:%S'),
+                "resume_text": doc.get('resume_text', ''),
+                "job_description": doc.get('job_description', ''),
+                "analysis_json": doc.get('analysis_json', {})
+            })
             
         return jsonify({"history": history}), 200
         
-    except mysql.connector.Error as err:
-        print(f"MySQL Error during history retrieval: {err}")
+    except Exception as e:
+        print(f"Error during history retrieval: {e}")
         return jsonify({"error": "Database error during history retrieval."}), 500
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 @app.route('/delete_analysis', methods=['POST'])
+@token_required
 def delete_analysis():
     data = request.get_json()
-    token = data.get('token')
     draft_id = data.get('draft_id')
+    user_id = get_user_id_from_context()
     
-    user_id = get_user_id_from_token(token)
-    if not user_id:
-        return jsonify({"error": "Authentication required to delete drafts."}), 401
     if not draft_id:
         return jsonify({"error": "Draft ID is required."}), 400
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Could not connect to database."}), 500
-    
     try:
-        cursor = conn.cursor()
-        query = "DELETE FROM resume_analyses WHERE id = %s AND user_id = %s"
-        cursor.execute(query, (draft_id, user_id))
-        conn.commit()
+        result = analyses_collection.delete_one({"_id": ObjectId(draft_id), "user_id": ObjectId(user_id)})
         
-        if cursor.rowcount == 0:
+        if result.deleted_count == 0:
              return jsonify({"error": "Draft not found or unauthorized."}), 404
              
         return jsonify({"message": "Draft deleted successfully!"}), 200
         
-    except mysql.connector.Error as err:
-        print(f"MySQL Error during deletion: {err}")
+    except Exception as e:
+        print(f"Error during deletion: {e}")
         return jsonify({"error": "Database error during deletion."}), 500
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 ANALYSIS_SCHEMA = {
     "type": "OBJECT",
@@ -711,17 +699,15 @@ def refine_section():
         print(f"An error occurred during section refinement: {e}")
         return jsonify({"error": f"AI Server Error: {str(e)}"}), 500
 
-if __name__ == '__main__':
-    if not os.path.exists('/tmp'):
-        os.makedirs('/tmp')
-        
-    print("Testing MySQL connection...")
-    test_conn = get_db_connection()
-    if test_conn:
-        print("MySQL connection successful!")
-        test_conn.close()
-    else:
-        print("WARNING: MySQL connection failed. Check MYSQL_CONFIG in app.py and ensure the DB is running.")
+if __name__ == "__main__":
+    port = 5000
+    if os.getenv("FLASK_ENV") == "production":
+        port = int(os.environ.get("PORT", 5000))
 
-    print("Starting Flask server on http://127.0.0.1:5000")
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
+
+

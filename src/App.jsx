@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useCallback, createContext, useContext, useEffect, useRef } from 'react';
 import { Bot, FileText, Briefcase, ChevronRight, CheckCircle, XCircle, Loader2, Zap, LogIn, User, Mail, Lock, UserX, History, Save, Trash2, Lightbulb, Upload, Layout, CornerUpLeft } from 'lucide-react';
+import Toast from './components/Toast';
 
 // --- CONFIGURATION ---
-const API_BASE_URL = 'http://127.000.1:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // =========================================================================
 // 1. AUTHENTICATION CONTEXT & PROVIDER
@@ -21,9 +22,9 @@ const AuthProvider = ({ children }) => {
         localStorage.removeItem('userToken');
         localStorage.removeItem('user');
         setShowAuthModal(true);
-        window.location.reload(); 
+        window.location.reload();
     };
-    
+
     // Check local storage on initial load
     useEffect(() => {
         document.title = 'HireReady - AI Resume Toolkit';
@@ -66,7 +67,7 @@ const AuthModal = () => {
         setIsLoading(true);
         const endpoint = isSignIn ? '/signin' : '/signup';
         const payload = isSignIn ? { email, password } : { username, email, password };
-        
+
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'POST',
@@ -85,10 +86,10 @@ const AuthModal = () => {
                     token: data.token,
                     isGuest: false,
                 };
-                
+
                 localStorage.setItem('userToken', data.token);
                 localStorage.setItem('user', JSON.stringify(userObject));
-                
+
                 setUser(userObject);
                 setShowAuthModal(false);
             }
@@ -114,7 +115,7 @@ const AuthModal = () => {
                     {isSignIn ? 'Welcome Back!' : 'Create Your Account'}
                 </h2>
                 <p className="text-gray-500 mb-6">{isSignIn ? 'Sign in to save your drafts and progress.' : 'Sign up to start saving and comparing your resumes.'}</p>
-                
+
                 {error && (
                     <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 mb-4">
                         {error}
@@ -167,7 +168,7 @@ const AuthModal = () => {
                         {isSignIn ? "Need an account? Sign Up" : "Already have an account? Sign In"}
                     </button>
                 </div>
-                
+
                 <div className="mt-6 border-t pt-4">
                     <button onClick={handleGuest}
                         className="w-full flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 transition duration-150"
@@ -187,43 +188,42 @@ const AuthModal = () => {
 
 // Custom component for a structured feedback block
 const FeedbackBlock = ({ title, score, icon: Icon, children }) => (
-  <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-100">
-    <div className="flex items-center justify-between mb-3 border-b pb-3">
-      <h2 className="text-xl font-bold text-gray-800 flex items-center">
-        <Icon className="w-5 h-5 mr-2 text-indigo-600" />
-        {title}
-      </h2>
-      {score !== undefined && (
-        <span className={`text-2xl font-extrabold px-3 py-1 rounded-full ${
-          score >= 85 ? 'bg-green-100 text-green-700' :
-          score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-          'bg-red-100 text-red-700'
-        }`}>
-          {score}%
-        </span>
-      )}
+    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-100">
+        <div className="flex items-center justify-between mb-3 border-b pb-3">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <Icon className="w-5 h-5 mr-2 text-indigo-600" />
+                {title}
+            </h2>
+            {score !== undefined && (
+                <span className={`text-2xl font-extrabold px-3 py-1 rounded-full ${score >= 85 ? 'bg-green-100 text-green-700' :
+                    score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                    }`}>
+                    {score}%
+                </span>
+            )}
+        </div>
+        <div className="text-gray-600 space-y-3">
+            {children}
+        </div>
     </div>
-    <div className="text-gray-600 space-y-3">
-      {children}
-    </div>
-  </div>
 );
 
 // Helper function to render bullet points with status icons
 const renderAdviceList = (list) => (
     <ul className="space-y-2">
-      {list.map((item, index) => (
-        <li key={index} className="flex items-start text-sm">
-          {item.type === 'improvement' ? (
-            <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-1 mr-2" />
-          ) : item.type === 'strength' ? (
-            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-1 mr-2" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-1 mr-2" />
-          )}
-          <span>{item.detail}</span>
-        </li>
-      ))}
+        {list.map((item, index) => (
+            <li key={index} className="flex items-start text-sm">
+                {item.type === 'improvement' ? (
+                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-1 mr-2" />
+                ) : item.type === 'strength' ? (
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-1 mr-2" />
+                ) : (
+                    <ChevronRight className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-1 mr-2" />
+                )}
+                <span>{item.detail}</span>
+            </li>
+        ))}
     </ul>
 );
 
@@ -330,7 +330,7 @@ const BulletGenerator = () => {
                     </>
                 )}
             </button>
-            
+
             {error && (
                 <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 mt-4 text-center">
                     {error}
@@ -360,7 +360,7 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
     const [history, setHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isDeleting, setIsDeleting] = useState(null); 
+    const [isDeleting, setIsDeleting] = useState(null);
 
     const fetchHistory = useCallback(async () => {
         if (user?.isGuest || !user?.token) {
@@ -376,8 +376,11 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
         try {
             const response = await fetch(`${API_BASE_URL}/get_history`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: user.token }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
+                body: JSON.stringify({}),
             });
 
             if (!response.ok) {
@@ -406,8 +409,11 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
         try {
             const response = await fetch(`${API_BASE_URL}/delete_analysis`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: user.token, draft_id: draftId }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
+                body: JSON.stringify({ draft_id: draftId }),
             });
 
             const data = await response.json();
@@ -429,20 +435,34 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
 
     useEffect(() => {
         if (user?.token) {
-             fetchHistory();
+            fetchHistory();
         }
-    }, [user, historyVersion, fetchHistory]); 
+    }, [user, historyVersion, fetchHistory]);
 
     if (isLoading) {
         return <div className="text-center p-12 text-indigo-600"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" /> Loading History...</div>;
     }
-    
+
     if (error && !error.includes("Authentication required")) {
         return <div className="text-center p-12 text-red-600 bg-red-50 rounded-lg border border-red-200 max-w-xl mx-auto">{error}</div>;
     }
 
     if (history.length === 0) {
-        return <div className="text-center p-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 max-w-xl mx-auto">You haven't saved any analyses yet. Run an analysis and click 'Save Draft'!</div>;
+        return (
+            <div className="text-center p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-xl mx-auto flex flex-col items-center">
+                <div className="bg-indigo-50 p-4 rounded-full mb-4">
+                    <FileText className="w-10 h-10 text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Saved Analyses Yet</h3>
+                <p className="text-gray-500 mb-6">Run a resume analysis and click "Save Draft" to build your history.</p>
+                <button
+                    onClick={() => document.querySelector('button[class*="border-indigo-600"]').click()}
+                    className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition"
+                >
+                    Start New Analysis
+                </button>
+            </div>
+        );
     }
 
     return (
@@ -460,22 +480,21 @@ const HistorySection = ({ onLoadAnalysis, historyVersion, setHistoryVersion }) =
                         {/* Info Block */}
                         <div className='flex-1 pr-4 min-w-0'>
                             <p className="text-lg font-semibold text-gray-800 truncate">
-                                {draft.target_job_title} 
+                                {draft.target_job_title}
                                 <span className="text-sm font-normal text-gray-500 ml-2">({draft.created_at.split(' ')[0]})</span>
                             </p>
                             <p className="text-xs text-gray-600 mt-1 italic">
-                                ATS Score: {draft.ats_score}% 
+                                ATS Score: {draft.ats_score}%
                                 - JD Preview: {draft.job_description.substring(0, 50)}...
                             </p>
                         </div>
-                        
+
                         {/* Action Block */}
                         <div className="flex items-center space-x-2 mt-3 sm:mt-0 sm:flex-shrink-0">
-                            <span className={`text-xl font-extrabold px-3 py-1 rounded-full ${
-                                draft.ats_score >= 85 ? 'bg-green-100 text-green-700' :
+                            <span className={`text-xl font-extrabold px-3 py-1 rounded-full ${draft.ats_score >= 85 ? 'bg-green-100 text-green-700' :
                                 draft.ats_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                            }`}>
+                                    'bg-red-100 text-red-700'
+                                }`}>
                                 {draft.ats_score}%
                             </span>
                             <button
@@ -583,7 +602,7 @@ const TemplateSelector = ({ resumeText, jobDescription, analysis, onSelectTempla
                     AI Template & Draft Selector
                 </h2>
                 <p className="text-gray-500 mb-6">The AI recommends a template that best suits your background and the target job description.</p>
-                
+
                 {error && <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 mb-4">{error}</p>}
 
                 {isLoading ? (
@@ -705,7 +724,7 @@ const TargetedSuggestionSection = ({ resumeText, jobDescription, keywordGaps }) 
                     </>
                 )}
             </button>
-            
+
             {error && (
                 <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 mt-4 text-center">
                     {error}
@@ -720,7 +739,7 @@ const TargetedSuggestionSection = ({ resumeText, jobDescription, keywordGaps }) 
                             <li key={index} className="flex items-start text-gray-700 border-l-4 border-orange-400 pl-3">
                                 <span className="text-orange-600 font-bold mr-2 text-lg">•</span>
                                 <div className='flex flex-col text-sm'>
-                                    <strong className='font-semibold'>{item.skill}:</strong> 
+                                    <strong className='font-semibold'>{item.skill}:</strong>
                                     <span>{item.bullet}</span>
                                 </div>
                             </li>
@@ -749,7 +768,7 @@ const TemplateEditor = ({ jobDescription, modifiedResumeDraft, setModifiedResume
         'Education': modifiedResumeDraft.match(/Education|Degrees/i)?.[0],
         // You would need more robust parsing on a real project
     }), [modifiedResumeDraft]);
-    
+
     // Function to extract text for a given section title
     const extractSectionText = useCallback((title) => {
         const sectionTitles = Object.values(sections).filter(Boolean);
@@ -776,14 +795,14 @@ const TemplateEditor = ({ jobDescription, modifiedResumeDraft, setModifiedResume
             setSuggestions(null);
             return;
         }
-        
+
         const sectionText = extractSectionText(sectionTitle);
         if (!sectionText) {
             setRefinementError(`Could not find a clear '${sectionTitle}' section to refine.`);
             setSuggestions(null);
             return;
         }
-        
+
         setIsLoadingSuggestions(true);
         setRefinementError('');
         setSuggestions(null);
@@ -824,7 +843,7 @@ const TemplateEditor = ({ jobDescription, modifiedResumeDraft, setModifiedResume
             }
             return line;
         });
-        
+
         setModifiedResumeDraft(updatedLines.join('\n'));
     };
 
@@ -835,44 +854,42 @@ const TemplateEditor = ({ jobDescription, modifiedResumeDraft, setModifiedResume
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
                     <div className='flex flex-col'>
                         <h2 className="text-2xl font-bold text-gray-800">
-                             Template: {selectedTemplate} 
+                            Template: {selectedTemplate}
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">
-                             Editing **{sections[activeSection] || 'Full Draft'}** for **{jobDescription.split('\n')[0].trim() || 'Target Job'}**
+                            Editing **{sections[activeSection] || 'Full Draft'}** for **{jobDescription.split('\n')[0].trim() || 'Target Job'}**
                         </p>
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={onShowTemplateModal}
                         className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 transition duration-150 flex items-center shadow-md"
                     >
-                        <Layout className='w-4 h-4 mr-2'/>
+                        <Layout className='w-4 h-4 mr-2' />
                         Change Template
                     </button>
                 </div>
-                
+
                 <div className="flex justify-center mb-4 space-x-2">
                     {Object.keys(sections).map(key => sections[key] && (
                         <button
                             key={key}
                             onClick={() => handleRefineSection(key)}
-                            className={`px-3 py-1 text-sm rounded-full font-medium transition-colors ${
-                                activeSection === key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-3 py-1 text-sm rounded-full font-medium transition-colors ${activeSection === key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                         >
                             {key}
                         </button>
                     ))}
                     <button
                         onClick={() => setActiveSection('full')}
-                        className={`px-3 py-1 text-sm rounded-full font-medium transition-colors ${
-                            activeSection === 'full' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1 text-sm rounded-full font-medium transition-colors ${activeSection === 'full' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
                     >
                         Full Draft
                     </button>
                 </div>
-                
+
                 <textarea
                     rows="25"
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 font-mono text-sm leading-relaxed whitespace-pre-wrap"
@@ -888,7 +905,7 @@ const TemplateEditor = ({ jobDescription, modifiedResumeDraft, setModifiedResume
                         <Lightbulb className="w-5 h-5 mr-2 text-indigo-600" />
                         AI Refinement Suggestions
                     </h3>
-                    
+
                     {activeSection === 'full' && (
                         <p className='text-gray-600'>Select a section (e.g., 'Experience', 'Summary') from above to get specific, keyword-rich rewrite suggestions for that block of text.</p>
                     )}
@@ -938,27 +955,34 @@ const MainApp = () => {
     const [analysis, setAnalysis] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('analyze'); 
+    const [activeTab, setActiveTab] = useState('analyze');
     const [saveMessage, setSaveMessage] = useState('');
-    const [historyVersion, setHistoryVersion] = useState(0); 
+    const [historyVersion, setHistoryVersion] = useState(0);
+
+    // --- Toast State ---
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+    };
 
     // --- NEW STATE FOR TEMPLATE EDITOR ---
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [modifiedResumeDraft, setModifiedResumeDraft] = useState(''); // The text actively being edited
 
-    const resumeFileInputRef = useRef(null); 
-    const jdFileInputRef = useRef(null); 
+    const resumeFileInputRef = useRef(null);
+    const jdFileInputRef = useRef(null);
 
     // --- File Upload Handler (UNCHANGED) ---
     const handleFileUpload = async (event, setTextState) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        if (file.type !== 'application/pdf' && 
+        if (file.type !== 'application/pdf' &&
             file.type !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
             file.type !== 'application/msword') {
-            setError("Unsupported file type. Please upload a PDF or DOCX file.");
+            showToast("Unsupported file type. Please upload a PDF or DOCX file.", 'error');
             return;
         }
 
@@ -970,7 +994,7 @@ const MainApp = () => {
 
         try {
             // UPDATED: Use the new /upload_file endpoint
-            const response = await fetch(`${API_BASE_URL}/upload_file`, { 
+            const response = await fetch(`${API_BASE_URL}/upload_file`, {
                 method: 'POST',
                 body: formData,
             });
@@ -982,7 +1006,7 @@ const MainApp = () => {
 
             const data = await response.json();
             if (data.extracted_text) {
-                setTextState(data.extracted_text); 
+                setTextState(data.extracted_text);
                 setError('');
             } else {
                 setError("File parsed, but no text was extracted. Please copy/paste manually.");
@@ -990,7 +1014,7 @@ const MainApp = () => {
 
         } catch (err) {
             console.error('File Upload failed:', err);
-            setError(`File Processing Error: ${err.message}. Ensure Flask server is running and libraries are installed.`);
+            showToast(`File Processing Error: ${err.message}. Ensure Flask server is running.`, 'error');
         } finally {
             setIsLoading(false);
             if (event.target === resumeFileInputRef.current) {
@@ -1003,15 +1027,15 @@ const MainApp = () => {
 
     // --- Load Analysis (UNCHANGED) ---
     const onLoadAnalysis = useCallback((draft) => {
-        const parsedAnalysis = typeof draft.analysis_json === 'string' 
-                                ? JSON.parse(draft.analysis_json) 
-                                : draft.analysis_json;
-                                
+        const parsedAnalysis = typeof draft.analysis_json === 'string'
+            ? JSON.parse(draft.analysis_json)
+            : draft.analysis_json;
+
         setResumeText(draft.resume_text);
         setJobDescription(draft.job_description);
         setAnalysis(parsedAnalysis);
         setModifiedResumeDraft(draft.resume_text); // Reset draft on load
-        setActiveTab('results'); 
+        setActiveTab('results');
         setSaveMessage('');
     }, []);
 
@@ -1021,23 +1045,25 @@ const MainApp = () => {
             setSaveMessage('Error: Must be signed in with a real account and have an analysis ready.');
             return;
         }
-        
+
         setSaveMessage('Saving...');
 
         // Use the currently edited draft if available, otherwise use original resumeText
-        const textToSave = modifiedResumeDraft || resumeText; 
+        const textToSave = modifiedResumeDraft || resumeText;
 
         const jobTitleLine = jobDescription.split('\n')[0].trim();
-        const targetJobTitle = jobTitleLine.length > 5 && jobTitleLine.length < 100 ? 
-                               jobTitleLine : 
-                               `Analysis - ATS Score ${analysis.ats_score}%`;
-        
+        const targetJobTitle = jobTitleLine.length > 5 && jobTitleLine.length < 100 ?
+            jobTitleLine :
+            `Analysis - ATS Score ${analysis.ats_score}%`;
+
         try {
             const response = await fetch(`${API_BASE_URL}/save_analysis`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
                 body: JSON.stringify({
-                    token: user.token,
                     resume_text: textToSave, // Save the modified text
                     job_description: jobDescription,
                     analysis_result: analysis,
@@ -1045,16 +1071,21 @@ const MainApp = () => {
                 }),
             });
 
+            console.log('Save response status:', response.status); // DEBUG
             const data = await response.json();
+            console.log('Save response data:', data); // DEBUG
 
             if (response.ok) {
-                setSaveMessage(`Draft saved successfully!`);
+                showToast('Draft saved successfully!', 'success');
+                setSaveMessage(''); // Clear loading state
                 setHistoryVersion(v => v + 1); // Trigger history refresh
             } else {
-                setSaveMessage(`Save Failed: ${data.error || 'Server error.'}`);
+                showToast(`Save Failed: ${data.error || 'Server error.'}`, 'error');
+                setSaveMessage(''); // Clear loading state
             }
         } catch (err) {
-            setSaveMessage(`Save Failed: Could not connect to the server.`);
+            showToast('Save Failed: Could not connect to the server.', 'error');
+            setSaveMessage(''); // Clear loading state
             console.error('Save failed:', err);
         }
     }, [user, analysis, resumeText, jobDescription, modifiedResumeDraft]);
@@ -1062,7 +1093,7 @@ const MainApp = () => {
     // --- Analyze (UPDATED to set initial draft state) ---
     const handleAnalyze = useCallback(async () => {
         if (!resumeText || !jobDescription) {
-            setError('Please provide both resume text and the job description.');
+            showToast('Please provide both resume text and the job description.', 'error');
             return;
         }
 
@@ -1070,7 +1101,7 @@ const MainApp = () => {
         setError('');
         setAnalysis(null);
         setSaveMessage('');
-        
+
         try {
             const response = await fetch(`${API_BASE_URL}/analyze_resume`, {
                 method: 'POST',
@@ -1095,7 +1126,7 @@ const MainApp = () => {
 
         } catch (err) {
             console.error('Analysis failed:', err);
-            setError(`Failed to connect or analyze. Error: ${err.message}`);
+            showToast(`Failed to connect or analyze. Error: ${err.message}`, 'error');
         } finally {
             setIsLoading(false);
         }
@@ -1108,19 +1139,10 @@ const MainApp = () => {
         setShowTemplateModal(false);
         setActiveTab('template');
     };
-    
+
     // --- Template Tab Click Handler ---
     const handleTemplateTabClick = () => {
-        if (!analysis) {
-            setError('Please run an analysis first before starting the Template Editor.');
-            setActiveTab('analyze');
-        } else {
-            setActiveTab('template');
-            // Only show the modal if a template hasn't been selected yet
-            if (!selectedTemplate) {
-                 setShowTemplateModal(true);
-            }
-        }
+        setActiveTab('template');
     };
 
 
@@ -1129,11 +1151,11 @@ const MainApp = () => {
             {showAuthModal && <AuthModal />}
             {/* Template Selector Modal is conditional on analysis being present */}
             {showTemplateModal && analysis && (
-                <TemplateSelector 
-                    resumeText={resumeText} 
+                <TemplateSelector
+                    resumeText={resumeText}
                     jobDescription={jobDescription}
                     analysis={analysis}
-                    onSelectTemplate={handleSelectTemplate} 
+                    onSelectTemplate={handleSelectTemplate}
                     onClose={() => setShowTemplateModal(false)}
                 />
             )}
@@ -1161,7 +1183,7 @@ const MainApp = () => {
                             <span className={`px-3 py-1 text-sm rounded-full font-medium ${user.isGuest ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                                 {user.isGuest ? 'Guest Mode (No Save)' : `Welcome, ${user.username}`}
                             </span>
-                            <button 
+                            <button
                                 onClick={signOut}
                                 className="px-4 py-1 text-sm font-medium text-red-600 bg-red-50 rounded-full hover:bg-red-100 transition duration-150 flex items-center"
                             >
@@ -1176,36 +1198,32 @@ const MainApp = () => {
                     {/* Analyzer Tab */}
                     <button
                         onClick={() => { setActiveTab('analyze'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${
-                            activeTab === 'analyze' || activeTab === 'results' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
-                        }`}
+                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'analyze' || activeTab === 'results' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                            }`}
                     >
                         1. Resume Analyzer
                     </button>
                     {/* Builder Tab */}
                     <button
                         onClick={() => { setActiveTab('builder'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${
-                            activeTab === 'builder' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
-                        }`}
+                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'builder' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                            }`}
                     >
                         2. Bullet Point Builder
                     </button>
                     {/* History Tab */}
                     <button
                         onClick={() => { setActiveTab('history'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${
-                            activeTab === 'history' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
-                        }`}
+                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'history' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                            }`}
                     >
                         3. History & Drafts
                     </button>
                     {/* Template Tab */}
                     <button
                         onClick={handleTemplateTabClick}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${
-                            activeTab === 'template' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
-                        }`}
+                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'template' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                            }`}
                     >
                         4. AI Template Editor
                     </button>
@@ -1248,7 +1266,7 @@ const MainApp = () => {
                                     <label htmlFor="job-description" className="block text-sm font-semibold text-gray-700 mb-2">
                                         Paste the Target Job Description or Upload File
                                     </label>
-                                    
+
                                     {/* JD File Upload Button & Hidden Input */}
                                     <input
                                         type="file" accept=".pdf,.docx" ref={jdFileInputRef} style={{ display: 'none' }}
@@ -1271,7 +1289,7 @@ const MainApp = () => {
                                     ></textarea>
                                 </div>
                             </div>
-                            
+
                             {/* Action and Status */}
                             <div className="flex flex-col items-center justify-center space-y-4">
                                 <button
@@ -1279,27 +1297,23 @@ const MainApp = () => {
                                     className="w-full max-w-sm flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out transform hover:scale-[1.01]"
                                 >
                                     {isLoading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                                        Analyzing... Connecting to Gemini
-                                    </>
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                                            Analyzing... Connecting to Gemini
+                                        </>
                                     ) : (
-                                    <>
-                                        Analyze Resume & Get ATS Score
-                                        <ChevronRight className="w-5 h-5 ml-2" />
-                                    </>
+                                        <>
+                                            Analyze Resume & Get ATS Score
+                                            <ChevronRight className="w-5 h-5 ml-2" />
+                                        </>
                                     )}
                                 </button>
-                                
-                                {error && (
-                                    <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 max-w-xl text-center">
-                                        {error}
-                                    </p>
-                                )}
+
+
                             </div>
                         </>
                     )}
-                    
+
                     {/* BULLET BUILDER Tab Content */}
                     {activeTab === 'builder' && (
                         <BulletGenerator />
@@ -1309,31 +1323,26 @@ const MainApp = () => {
                     {activeTab === 'history' && (
                         <HistorySection onLoadAnalysis={onLoadAnalysis} historyVersion={historyVersion} setHistoryVersion={setHistoryVersion} />
                     )}
-                    
+
                     {/* TEMPLATE EDITOR Tab Content (NEW) */}
-                    {activeTab === 'template' && selectedTemplate && modifiedResumeDraft && (
-                        <TemplateEditor 
-                            jobDescription={jobDescription} 
-                            modifiedResumeDraft={modifiedResumeDraft} 
-                            setModifiedResumeDraft={setModifiedResumeDraft}
-                            selectedTemplate={selectedTemplate}
-                            onShowTemplateModal={() => setShowTemplateModal(true)} // Pass handler to open modal
-                        />
+                    {activeTab === 'template' && (
+                        <div className="text-center p-12 bg-white rounded-xl shadow-lg border border-gray-100 max-w-2xl mx-auto">
+                            <div className="bg-yellow-50 p-4 rounded-full inline-block mb-4">
+                                <Zap className="w-12 h-12 text-yellow-500" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Template Editor Coming Soon!</h3>
+                            <p className="text-gray-600 mb-6">
+                                We are working hard to bring you a state-of-the-art AI Template Editor.
+                                <br />
+                                Currently, you can generate content in the Analyzer and Builder tabs.
+                            </p>
+                            <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                                Work In Progress
+                            </span>
+                        </div>
                     )}
-                    
-                    {/* Template Placeholder if not selected */}
-                    {activeTab === 'template' && !selectedTemplate && !showTemplateModal && analysis && (
-                         <div className="text-center p-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 max-w-xl mx-auto">
-                            <Layout className="w-8 h-8 mx-auto text-indigo-400 mb-4" />
-                            <p>Select **AI Template Editor** to choose a template and begin refining your draft.</p>
-                            <button 
-                                onClick={() => setShowTemplateModal(true)} 
-                                className="mt-4 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition"
-                            >
-                                Start Template Selection
-                            </button>
-                         </div>
-                    )}
+
+
 
 
                     {/* RESULTS Tab Content (FIXED) */}
@@ -1364,11 +1373,7 @@ const MainApp = () => {
                                     </button>
                                 </div>
                             </div>
-                            {saveMessage && !saveMessage.startsWith('Saving...') && (
-                                <p className={`p-3 rounded-lg text-sm text-center max-w-md mx-auto ${saveMessage.includes('Failed') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                                    {saveMessage}
-                                </p>
-                            )}
+
 
                             {/* Overall Score */}
                             <FeedbackBlock title="Overall ATS Match Score" score={analysis.ats_score} icon={Bot}>
@@ -1382,10 +1387,10 @@ const MainApp = () => {
                                 {/* ATS & Keywords */}
                                 <FeedbackBlock title="ATS Keyword Match" icon={Briefcase}>
                                     <h3 className='font-semibold text-gray-800'>Missing Keywords & Skills:</h3>
-                                    {renderAdviceList(analysis.feedback.keyword_gaps.map(g => ({type: 'improvement', detail: g})))}
+                                    {renderAdviceList(analysis.feedback.keyword_gaps.map(g => ({ type: 'improvement', detail: g })))}
 
                                     <h3 className='font-semibold text-gray-800 mt-4'>Relevant Strengths:</h3>
-                                    {renderAdviceList(analysis.feedback.keyword_strengths.map(s => ({type: 'strength', detail: s})))}
+                                    {renderAdviceList(analysis.feedback.keyword_strengths.map(s => ({ type: 'strength', detail: s })))}
                                 </FeedbackBlock>
 
                                 {/* Content & Actionability */}
@@ -1396,7 +1401,7 @@ const MainApp = () => {
                             </div>
 
                             {/* Targeted Skill Suggestions */}
-                            <TargetedSuggestionSection 
+                            <TargetedSuggestionSection
                                 resumeText={resumeText}
                                 jobDescription={jobDescription}
                                 keywordGaps={analysis.feedback.keyword_gaps}
@@ -1411,6 +1416,14 @@ const MainApp = () => {
                     )}
                 </div>
             </div>
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 };

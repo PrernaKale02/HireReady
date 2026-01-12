@@ -69,3 +69,7 @@ Thumbs.db
 # ==========================
 logs/
 coverage/
+
+# Allow example environment files
+!**/.env.example
+!.env.example

@@ -1,3 +1,11 @@
-Flask
+flask
 flask-cors
-openai
+pymongo
+dnspython
+pyjwt
+bcrypt
+python-dotenv
+requests
+pypdf
+python-docx
+gunicorn
