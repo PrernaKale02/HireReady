@@ -109,8 +109,8 @@ const AuthModal = () => {
 
     return (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
-                <h2 className="text-3xl font-bold text-indigo-600 mb-2 flex items-center">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
+                <h2 className="text-2xl sm:text-3xl font-bold text-indigo-600 mb-2 flex items-center">
                     <LogIn className="w-7 h-7 mr-2" />
                     {isSignIn ? 'Welcome Back!' : 'Create Your Account'}
                 </h2>
@@ -316,7 +316,7 @@ const BulletGenerator = () => {
             <button
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out transform hover:scale-[1.005]"
+                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-orange-500 hover:bg-orange-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out transform hover:scale-[1.005]"
             >
                 {isLoading ? (
                     <>
@@ -1219,38 +1219,38 @@ const MainApp = () => {
                 </header>
 
                 {/* Tab Navigation */}
-                <div className="flex justify-center mb-8 space-x-2 sm:space-x-4 border-b border-gray-200">
+                <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-gray-200">
                     {/* Analyzer Tab */}
                     <button
                         onClick={() => { setActiveTab('analyze'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'analyze' || activeTab === 'results' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                        className={`px-3 sm:px-6 py-2 text-sm sm:text-base rounded-t-lg font-medium transition-colors ${activeTab === 'analyze' || activeTab === 'results' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
                             }`}
                     >
-                        1. Resume Analyzer
+                        1. Analyzer
                     </button>
                     {/* Builder Tab */}
                     <button
                         onClick={() => { setActiveTab('builder'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'builder' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                        className={`px-3 sm:px-6 py-2 text-sm sm:text-base rounded-t-lg font-medium transition-colors ${activeTab === 'builder' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
                             }`}
                     >
-                        2. Bullet Point Builder
+                        2. Builder
                     </button>
                     {/* History Tab */}
                     <button
                         onClick={() => { setActiveTab('history'); setAnalysis(null); setError(''); }}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'history' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                        className={`px-3 sm:px-6 py-2 text-sm sm:text-base rounded-t-lg font-medium transition-colors ${activeTab === 'history' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
                             }`}
                     >
-                        3. History & Drafts
+                        3. History
                     </button>
                     {/* Template Tab */}
                     <button
                         onClick={handleTemplateTabClick}
-                        className={`px-4 sm:px-6 py-2 rounded-t-lg font-medium transition-colors ${activeTab === 'template' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
+                        className={`px-3 sm:px-6 py-2 text-sm sm:text-base rounded-t-lg font-medium transition-colors ${activeTab === 'template' ? 'border-b-4 border-indigo-600 text-indigo-700 bg-white/70' : 'text-gray-600 hover:text-indigo-600'
                             }`}
                     >
-                        4. AI Template Editor
+                        4. Editor
                     </button>
                 </div>
 
@@ -1319,7 +1319,7 @@ const MainApp = () => {
                             <div className="flex flex-col items-center justify-center space-y-4">
                                 <button
                                     onClick={handleAnalyze} disabled={isLoading}
-                                    className="w-full max-w-sm flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out transform hover:scale-[1.01]"
+                                    className="w-full max-w-sm flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out transform hover:scale-[1.01]"
                                 >
                                     {isLoading ? (
                                         <>
