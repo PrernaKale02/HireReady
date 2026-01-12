@@ -465,8 +465,8 @@ def call_gemini_analysis(resume_text, job_description):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": ANALYSIS_SCHEMA
+            "response_mime_type": "application/json",
+            "response_schema": ANALYSIS_SCHEMA
         }
     }
     return call_gemini_with_retry(payload, "ANALYSIS_SCHEMA")
@@ -486,8 +486,8 @@ def call_gemini_bullet_generator(job_title, task_description):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": BULLET_POINT_SCHEMA
+            "response_mime_type": "application/json",
+            "response_schema": BULLET_POINT_SCHEMA
         }
     }
     return call_gemini_with_retry(payload, "BULLET_POINT_SCHEMA")
@@ -512,8 +512,8 @@ def call_gemini_skill_suggester(resume_text, job_description, keyword_gaps):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": SUGGESTION_SCHEMA
+            "response_mime_type": "application/json",
+            "response_schema": SUGGESTION_SCHEMA
         }
     }
     return call_gemini_with_retry(payload, "SUGGESTION_SCHEMA")
@@ -536,8 +536,8 @@ def call_gemini_template_selector(resume_text, job_description):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": TEMPLATE_RECOMMENDATION_SCHEMA,
+            "response_mime_type": "application/json",
+            "response_schema": TEMPLATE_RECOMMENDATION_SCHEMA,
             "temperature": 0.1
         }
     }
@@ -563,8 +563,8 @@ def call_gemini_initial_draft(resume_text, job_description, analysis_result):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": {"type": "OBJECT", "properties": {"modified_draft": {"type": "STRING"}}},
+            "response_mime_type": "application/json",
+            "response_schema": {"type": "OBJECT", "properties": {"modified_draft": {"type": "STRING"}}},
             "temperature": 0.3
         }
     }
@@ -589,8 +589,8 @@ def call_gemini_section_refiner(section_text, job_description):
         "contents": [{ "parts": [{ "text": user_query }] }],
         "systemInstruction": { "parts": [{ "text": system_prompt }] },
         "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": SECTION_REFINEMENT_SCHEMA,
+            "response_mime_type": "application/json",
+            "response_schema": SECTION_REFINEMENT_SCHEMA,
             "temperature": 0.5
         }
     }
