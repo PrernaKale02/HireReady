@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
-const Toast = ({ message, type = 'success', onClose, duration = 3000 }) => {
+const Toast = ({ message, type = 'success', onClose, duration = 5000 }) => {
     useEffect(() => {
         if (!message) return;
 
@@ -22,7 +22,7 @@ const Toast = ({ message, type = 'success', onClose, duration = 3000 }) => {
                 {isSuccess ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                 <span className="sr-only">{isSuccess ? 'Check icon' : 'Error icon'}</span>
             </div>
-            <div className="ml-3 text-sm font-normal mr-8 text-gray-800">{message}</div>
+            <div className="ml-3 text-sm font-normal mr-8 text-gray-800 dark:text-gray-200">{message}</div>
             <button
                 type="button"
                 onClick={onClose}
