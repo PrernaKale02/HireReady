@@ -1282,7 +1282,7 @@ const MainApp = () => {
                                     <textarea
                                         id="resume" rows="15"
                                         className="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
-                                        placeholder="Start with your contact info, summary, experience, education, and skills sections. Ensure your resume has minimal formatting for best parsing results."
+                                        placeholder="Start with your contact info, summary, experience, education, and skills sections. Ensure your resume has minimal formatting for best parsing results. Make sure the file is not a print copy because text cant be extracted from a print file/scanned pdf"
                                         value={resumeText}
                                         onChange={(e) => setResumeText(e.target.value)}
                                     ></textarea>
@@ -1309,7 +1309,7 @@ const MainApp = () => {
                                     <textarea
                                         id="job-description" rows="15"
                                         className="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
-                                        placeholder="Include the job title, company, and all responsibilities and requirements."
+                                        placeholder="Include the job title, company, and all responsibilities and requirements. Make sure the file is not a print copy because text cant be extracted from a print file/scanned pdf"
                                         value={jobDescription}
                                         onChange={(e) => setJobDescription(e.target.value)}
                                     ></textarea>
