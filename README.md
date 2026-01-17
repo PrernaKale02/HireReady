@@ -2,8 +2,6 @@
 
 HireReady is a production-grade, AI-powered web application designed to help job seekers optimize their resumes for Applicant Tracking Systems (ATS) and recruiters. It provides instant, actionable feedback, generates quantifiable bullet points, and offers targeted solutions for skill gaps.
 
-![HireReady Hero](https://placehold.co/1200x600/4f46e5/ffffff?text=HireReady+AI+Toolkit)
-
 ---
 
 ## 🚀 Key Features
