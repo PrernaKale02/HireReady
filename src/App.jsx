@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useCallback, createContext, useContext, useEffect, useRef } from 'react';
-import { Bot, FileText, Briefcase, ChevronRight, CheckCircle, XCircle, Loader2, Zap, LogIn, User, Mail, Lock, UserX, History, Save, Trash2, Lightbulb, Upload, Layout, CornerUpLeft } from 'lucide-react';
+import { FileText, Briefcase, ChevronRight, CheckCircle, XCircle, Loader2, Zap, LogIn, User, Mail, Lock, UserX, History, Save, Trash2, Lightbulb, Upload, Layout, CornerUpLeft } from 'lucide-react';
 import Toast from './components/Toast';
+import logo from './assets/logo.png';
 
 // --- CONFIGURATION ---
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -1200,7 +1201,7 @@ const MainApp = () => {
             <div className="max-w-6xl mx-auto">
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-10">
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 flex items-center">
-                        <Bot className="w-7 h-7 mr-3 text-indigo-600" />
+                        <img src={logo} alt="HireReady Logo" className="w-10 h-10 mr-3 object-contain" />
                         HireReady <span className="text-sm font-medium ml-2 text-indigo-400">(AI Resume Toolkit)</span>
                     </h1>
                     {user && (
