@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useCallback, createContext, useContext, useEffect, useRef } from 'react';
-import { FileText, Briefcase, ChevronRight, CheckCircle, XCircle, Loader2, Zap, LogIn, User, Mail, Lock, UserX, History, Save, Trash2, Lightbulb, Upload, Layout, CornerUpLeft } from 'lucide-react';
+import { FileText, Briefcase, ChevronRight, CheckCircle, XCircle, Loader2, Zap, LogIn, User, Mail, Lock, UserX, History, Save, Trash2, Lightbulb, Upload, Layout, CornerUpLeft, Bot } from 'lucide-react';
 import Toast from './components/Toast';
 import logo from './assets/logo.png';
 
@@ -192,7 +192,7 @@ const FeedbackBlock = ({ title, score, icon: Icon, children }) => (
     <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100">
         <div className="flex items-center justify-between mb-3 border-b pb-3">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Icon className="w-5 h-5 mr-2 text-indigo-600" />
+                {Icon && <Icon className="w-5 h-5 mr-2 text-indigo-600" />}
                 {title}
             </h2>
             {score !== undefined && (
@@ -1402,7 +1402,7 @@ const MainApp = () => {
 
 
                             {/* Overall Score */}
-                            <FeedbackBlock title="Overall ATS Match Score" score={analysis.ats_score}>
+                            <FeedbackBlock title="Overall ATS Match Score" score={analysis.ats_score} icon={Zap}>
                                 <p className='text-lg font-medium text-gray-700'>
                                     This score represents how well your current resume aligns with the keywords, required skills, and formatting expected by Applicant Tracking Systems (ATS) and hiring managers for the target job.
                                 </p>
