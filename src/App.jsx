@@ -1402,7 +1402,7 @@ const MainApp = () => {
 
 
                             {/* Overall Score */}
-                            <FeedbackBlock title="Overall ATS Match Score" score={analysis.ats_score} icon={Bot}>
+                            <FeedbackBlock title="Overall ATS Match Score" score={analysis.ats_score}>
                                 <p className='text-lg font-medium text-gray-700'>
                                     This score represents how well your current resume aligns with the keywords, required skills, and formatting expected by Applicant Tracking Systems (ATS) and hiring managers for the target job.
                                 </p>
